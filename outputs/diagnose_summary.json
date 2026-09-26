@@ -1,0 +1,38 @@
+{
+  "experiment": "learning rate diagnosis",
+  "fixed": "seed=42, batch_size=128, epochs=30, optimizer=SGD(lr=0.01, momentum=0.9, weight_decay=0.0), hidden_dim=256, split=50000/10000",
+  "lr_list": [
+    0.01,
+    0.1,
+    1.0
+  ],
+  "rows": [
+    {
+      "lr": 0.01,
+      "first_epoch_loss": "0.5616",
+      "final_train_loss": "0.1677",
+      "best_val_acc": "0.8965",
+      "epochs_run": 20,
+      "conclusion": "正常收敛",
+      "time_sec": "21.0"
+    },
+    {
+      "lr": 0.1,
+      "first_epoch_loss": "0.5556",
+      "final_train_loss": "0.2346",
+      "best_val_acc": "0.8753",
+      "epochs_run": 20,
+      "conclusion": "正常收敛",
+      "time_sec": "25.9"
+    },
+    {
+      "lr": 1.0,
+      "first_epoch_loss": "69.9874",
+      "final_train_loss": "2.3081",
+      "best_val_acc": "0.1374",
+      "epochs_run": 20,
+      "conclusion": "未收敛/震荡",
+      "time_sec": "48.7"
+    }
+  ]
+}

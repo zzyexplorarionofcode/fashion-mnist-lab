@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Fashion-MNIST 十分类实验报告</title>
+<style>
+/* ==================== 页面设置 ==================== */
+@page { size: A4; margin: 20mm 18mm 18mm 18mm; }
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+body {
+  font-family: "SimSun", "Songti SC", "Noto Serif SC", serif;
+  font-size: 11pt;
+  line-height: 1.72;
+  color: #000;
+  margin: 0;
+  text-align: justify;
+}
+
+/* ==================== 标题层级 ==================== */
+h1.doctitle {
+  font-family: "SimHei", "Heiti SC", "Microsoft YaHei", sans-serif;
+  font-size: 19pt;
+  text-align: center;
+  margin: 0 0 6pt 0;
+  letter-spacing: 1px;
+}
+.meta {
+  text-align: center;
+  font-size: 10.5pt;
+  color: #333;
+  margin-bottom: 4pt;
+}
+hr.rule { border: none; border-top: 1.4pt solid #000; margin: 10pt 0 16pt 0; }
+
+h2 {
+  font-family: "SimHei", "Heiti SC", "Microsoft YaHei", sans-serif;
+  font-size: 13.5pt;
+  margin: 20pt 0 8pt 0;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+h3 {
+  font-family: "SimHei", "Heiti SC", "Microsoft YaHei", sans-serif;
+  font-size: 11.5pt;
+  margin: 14pt 0 6pt 0;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+h4 {
+  font-family: "SimHei", "Heiti SC", "Microsoft YaHei", sans-serif;
+  font-size: 11pt;
+  margin: 11pt 0 4pt 0;
+  page-break-after: avoid;
+}
+p { margin: 0 0 7pt 0; text-indent: 2em; }
+p.noindent { text-indent: 0; }
+
+/* ==================== 列表 ==================== */
+ol, ul { margin: 4pt 0 8pt 0; padding-left: 2em; }
+li { margin-bottom: 3pt; }
+
+/* ==================== 三线表 ==================== */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8pt 0 4pt 0;
+  font-size: 10pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+table.tight { width: auto; margin-left: auto; margin-right: auto; }
+caption {
+  caption-side: top;
+  font-size: 10pt;
+  font-family: "SimHei", "Heiti SC", sans-serif;
+  padding-bottom: 4pt;
+  text-align: center;
+}
+thead th {
+  border-top: 1.3pt solid #000;
+  border-bottom: 0.7pt solid #000;
+  padding: 4pt 6pt;
+  font-family: "SimHei", "Heiti SC", sans-serif;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+tbody td {
+  padding: 3.5pt 6pt;
+  text-align: center;
+}
+tbody tr:last-child td { border-bottom: 1.3pt solid #000; }
+tbody td.left { text-align: left; }
+.hi { font-weight: bold; }
+
+/* ==================== 图 ==================== */
+.figure {
+  text-align: center;
+  margin: 10pt 0 12pt 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+/* 图片高度由每张图自己的 max-height 控制（见各 img 的 inline style）：
+   各图宽高比差异很大，统一上限会让宽图太小、方图太大。 */
+.figure img { max-width: 100%; width: auto; }
+.figcap {
+  font-size: 9.5pt;
+  font-family: "SimHei", "Heiti SC", sans-serif;
+  margin-top: 4pt;
+  text-align: center;
+  text-indent: 0;
+  /* 图注与图片是兄弟节点，图片的 page-break-inside:avoid 管不到图注。
+     这里禁止在图注前分页，否则会出现"图在页底、图注跑到下一页"。 */
+  page-break-before: avoid;
+  break-before: avoid;
+}
+.fig2 { display: flex; gap: 8pt; justify-content: center; align-items: center; }
+.fig2 > div { flex: 1; text-align: center; }
+.fig2 img { max-width: 100%; width: auto; }
+
+/* 表格中的数学量级用西文字体，避免 SimSun 下 O 与 0 混淆 */
+.math { font-family: "Cambria Math", "Times New Roman", serif; }
+
+/* ==================== 公式 ==================== */
+.eq {
+  text-align: center;
+  margin: 9pt 0;
+  text-indent: 0;
+  page-break-inside: avoid;
+}
+.eq .body { font-family: "Cambria Math", "Times New Roman", serif; font-style: italic; }
+/* 函数名（max / softmax / exp / log / onehot）按数学排版惯例用正体，不能跟着变量一起斜 */
+.eq .up { font-style: normal; }
+.eqno { float: right; font-style: normal; font-family: "Times New Roman", serif; }
+
+/* 多行推导：堆成左对齐的一列，比横排一长串加箭头稳得多 */
+.eqstack {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 30pt;
+}
+/* 两列网格：左列放等号左边的量，右列放右边，这样四条式子的等号能对齐 */
+.eqstack .body {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.45em;
+  row-gap: 0.6em;
+  align-items: baseline;
+  text-align: left;
+}
+.eqstack .eqno { float: none; }
+.frac {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 0.2em;
+  font-size: 0.95em;
+  line-height: 1.2;
+}
+.frac > span { display: block; padding: 0 0.35em; }
+.frac > span:first-child { border-bottom: 0.8pt solid #000; }
+.op { font-style: normal; padding: 0 0.15em; }
+
+/* ==================== 代码 ==================== */
+pre {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 9pt;
+  line-height: 1.45;
+  background: #F5F6F7;
+  border-left: 2.5pt solid #9AA5B1;
+  padding: 6pt 9pt;
+  margin: 7pt 0;
+  white-space: pre-wrap;
+  page-break-inside: avoid;
+}
+code {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 9.5pt;
+}
+
+/* ==================== 提示框 ==================== */
+.note {
+  border-left: 2.5pt solid #4C78A8;
+  background: #F2F6FA;
+  padding: 6pt 10pt;
+  margin: 8pt 0;
+  font-size: 10pt;
+  page-break-inside: avoid;
+}
+.note p { text-indent: 0; margin: 0 0 4pt 0; }
+.note p:last-child { margin-bottom: 0; }
+
+.pagebreak { page-break-before: always; break-before: page; }
+</style>
+</head>
+<body>
+
+<h1 class="doctitle">Fashion-MNIST 十分类实验报告</h1>
+<div class="meta">姓名：祝梓元　　学号：U202314554　　日期：2026 年 9 月 25 日</div>
+<hr class="rule">
+
+<!-- ==================================================================== -->
+<h2>一、实验目的与任务</h2>
+
+<p>本实验在 Fashion-MNIST 数据集上完成十分类任务，围绕「线性模型的表达能力边界」与「训练过程的诊断方法」两条主线，包含以下四项任务：</p>
+
+<ol>
+  <li><b>线性基线</b>：训练线性 Softmax 分类器，记录训练与验证曲线，给出测试准确率、混淆矩阵、逐类召回率与典型错误可视化。</li>
+  <li><b>反向传播</b>：仅使用 NumPy 在固定 mini-batch 上实现单隐藏层 MLP 的前向与反向传播，并用中心差分完成梯度检查。</li>
+  <li><b>受控比较</b>：使用 PyTorch 比较线性 Softmax、两个线性层但中间无激活、以及加入 ReLU 的 MLP 三种模型，后两者使用相同隐藏层宽度，其余训练条件保持一致。</li>
+  <li><b>训练诊断</b>：选择一个实际出现的训练问题，先提出原因判断，再只改变一个关键因素进行验证。</li>
+</ol>
+
+<!-- ==================================================================== -->
+<h2>二、实验环境与数据</h2>
+
+<h3>2.1 软硬件环境</h3>
+
+<table class="tight">
+  <caption>表 1　实验环境</caption>
+  <thead><tr><th>项目</th><th>配置</th></tr></thead>
+  <tbody>
+    <tr><td class="left">操作系统</td><td class="left">Windows 11</td></tr>
+    <tr><td class="left">Python</td><td class="left">3.13.3</td></tr>
+    <tr><td class="left">NumPy</td><td class="left">2.1.1</td></tr>
+    <tr><td class="left">PyTorch / torchvision</td><td class="left">2.12.0+cpu / 0.27.0+cpu</td></tr>
+    <tr><td class="left">Matplotlib</td><td class="left">3.10.7</td></tr>
+    <tr><td class="left">计算设备</td><td class="left">CPU（无 CUDA，全部实验在 CPU 上完成）</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 数据集与划分</h3>
+
+<p>Fashion-MNIST 包含 10 类服饰灰度图，每张 28×28。官方训练集 60 000 张、测试集 10 000 张。</p>
+
+<p>按要求将官方训练集固定划分为 <b>50 000 训练 + 10 000 验证</b>，官方测试集 10 000 张<b>仅用于最终评价</b>，不参与任何训练或超参选择。划分由随机种子 42 生成，索引落盘保存，四个实验共用同一份划分——这是后文受控比较能够成立的前提。</p>
+
+<p>归一化使用训练集的均值与标准差（mean = 0.2860，std = 0.3531），三个模型共用同一组参数，避免「每个模型各归一化一套」这种隐性变量。</p>
+
+<h3>2.3 训练配置</h3>
+
+<table class="tight">
+  <caption>表 2　统一训练配置（三个模型完全一致）</caption>
+  <thead><tr><th>配置项</th><th>取值</th></tr></thead>
+  <tbody>
+    <tr><td class="left">优化器</td><td class="left">SGD，momentum = 0.9</td></tr>
+    <tr><td class="left">学习率</td><td class="left">0.01</td></tr>
+    <tr><td class="left">批大小</td><td class="left">128</td></tr>
+    <tr><td class="left">训练轮数</td><td class="left">30</td></tr>
+    <tr><td class="left">权重衰减</td><td class="left">0（避免引入额外变量）</td></tr>
+    <tr><td class="left">隐藏层宽度</td><td class="left">256（模型②③共用）</td></tr>
+    <tr><td class="left">随机种子</td><td class="left">42</td></tr>
+  </tbody>
+</table>
+
+<p>学习率 0.01 并非随意指定，而是在诊断实验中实测选定的安全值，详见第七节。</p>
+
+<!-- ==================================================================== -->
+<h2>三、实验原理</h2>
+
+<h3>3.1 Softmax 线性分类器</h3>
+
+<p>线性分类器对输入 <span class="eq"><span class="body">x ∈ R<sup>784</sup></span></span> 计算各类得分（logits）<span class="eq"><span class="body">z = Wx + b</span></span>，再经 Softmax 归一化为概率：</p>
+
+<div class="eq"><span class="body">
+p<sub>k</sub> <span class="op">=</span>
+<span class="frac"><span><span class="up">exp</span>(z<sub>k</sub>)</span><span><span class="up">Σ</span><sub>j</sub> <span class="up">exp</span>(z<sub>j</sub>)</span></span>
+<span class="eqno">(1)</span>
+</span></div>
+
+<p>训练目标是最大化真实类别 <span class="eq"><span class="body">y</span></span> 的预测概率，等价于最小化交叉熵损失：</p>
+
+<div class="eq"><span class="body">
+L <span class="op">= −</span>
+<span class="frac"><span>1</span><span>N</span></span>
+<span class="up">Σ</span><sub>i</sub> <span class="up">log</span> p<sub>y<sub>i</sub></sub>
+<span class="eqno">(2)</span>
+</span></div>
+
+<p>Softmax 与交叉熵合并求导后形式非常简洁，这一点在 3.2 节的反向传播中会直接用到：</p>
+
+<div class="eq"><span class="body">
+<span class="frac"><span>∂L</span><span>∂z<sub>k</sub></span></span>
+<span class="op">=</span>
+<span class="frac"><span>p<sub>k</sub> − 1[k = y]</span><span>N</span></span>
+<span class="eqno">(3)</span>
+</span></div>
+
+<h3>3.2 单隐藏层 MLP 与反向传播</h3>
+
+<p>单隐藏层 MLP 在两层线性变换之间插入 ReLU 激活：</p>
+
+<div class="eq eqstack"><span class="body">
+<span>Z<sub>1</sub></span><span><span class="op">=</span> XW<sub>1</sub> <span class="op">+</span> b<sub>1</sub></span>
+<span>A<sub>1</sub></span><span><span class="op">=</span> <span class="up">max</span>(0, Z<sub>1</sub>)</span>
+<span>Z<sub>2</sub></span><span><span class="op">=</span> A<sub>1</sub>W<sub>2</sub> <span class="op">+</span> b<sub>2</sub></span>
+<span>P</span><span><span class="op">=</span> <span class="up">softmax</span>(Z<sub>2</sub>)</span>
+</span><span class="eqno">(4)</span></div>
+
+<p>其中 <span class="eq"><span class="body">W<sub>1</sub> ∈ R<sup>784×256</sup></span></span>，<span class="eq"><span class="body">W<sub>2</sub> ∈ R<sup>256×10</sup></span></span>。反向传播按链式法则自上而下逐层回传，逐步推导如下：</p>
+
+<div class="eq"><span class="body">
+dZ<sub>2</sub> <span class="op">=</span> <span class="frac"><span>P <span class="op">−</span> <span class="up">onehot</span>(y)</span><span>N</span></span>
+　<span class="op">⇒</span>　dW<sub>2</sub> <span class="op">=</span> A<sub>1</sub><sup>T</sup>dZ<sub>2</sub>，　db<sub>2</sub> <span class="op">=</span> <span class="up">Σ</span> dZ<sub>2</sub>
+<span class="eqno">(5)</span>
+</span></div>
+
+<div class="eq"><span class="body">
+dA<sub>1</sub> <span class="op">=</span> dZ<sub>2</sub>W<sub>2</sub><sup>T</sup>
+　<span class="op">⇒</span>　dZ<sub>1</sub> <span class="op">=</span> dA<sub>1</sub> <span class="op">⊙</span> 1[Z<sub>1</sub> &gt; 0]
+　<span class="op">⇒</span>　dW<sub>1</sub> <span class="op">=</span> X<sup>T</sup>dZ<sub>1</sub>，　db<sub>1</sub> <span class="op">=</span> <span class="up">Σ</span> dZ<sub>1</sub>
+<span class="eqno">(6)</span>
+</span></div>
+
+<p>式 (6) 中 <span class="eq"><span class="body">1[Z<sub>1</sub> &gt; 0]</span></span> 是 ReLU 的导数：正值处梯度原样通过，负值处截断为 0。全部实现使用 <b>float64</b>，原因见 3.3 节。</p>
+
+<h3>3.3 中心差分梯度检查</h3>
+
+<p>同一个梯度可以用两条完全独立的路径计算：<b>解析梯度</b>由手写反向传播按链式法则推出，速度快但可能推导或编码出错；<b>数值梯度</b>由差商近似，速度慢但只依赖前向传播，几乎不可能写错。梯度检查就是用后者检验前者。</p>
+
+<p>数值微分有三种取法，精度差异极大：</p>
+
+<table class="tight">
+  <caption>表 3　三种差商近似的截断误差</caption>
+  <thead><tr><th>方法</th><th>表达式</th><th>误差量级</th></tr></thead>
+  <tbody>
+    <tr><td>前向差分</td><td>[f(x+h) − f(x)] / h</td><td><span class="math">O(h)</span></td></tr>
+    <tr><td>后向差分</td><td>[f(x) − f(x−h)] / h</td><td><span class="math">O(h)</span></td></tr>
+    <tr><td class="hi">中心差分</td><td class="hi">[f(x+h) − f(x−h)] / 2h</td><td class="hi"><span class="math">O(h²)</span></td></tr>
+  </tbody>
+</table>
+
+<p>中心差分精度高出两个数量级，原因可由泰勒展开看出：</p>
+
+<div class="eq"><span class="body">
+f(x+h) <span class="op">=</span> f(x) + h f′(x) + <span class="frac"><span>h²</span><span>2</span></span> f″(x) + <span class="frac"><span>h³</span><span>6</span></span> f‴(x) + ⋯
+</span></div>
+<div class="eq"><span class="body">
+f(x−h) <span class="op">=</span> f(x) − h f′(x) + <span class="frac"><span>h²</span><span>2</span></span> f″(x) − <span class="frac"><span>h³</span><span>6</span></span> f‴(x) + ⋯
+</span></div>
+
+<p class="noindent">两式相减，<span class="eq"><span class="body">h²</span></span> 项因符号相同而<b>被消去</b>，只剩 <span class="eq"><span class="body">h³</span></span> 项，除以 <span class="eq"><span class="body">2h</span></span> 后误差主项为 <span class="eq"><span class="body">−(h²/6)f‴(x)</span></span>；前向差分无法消去 <span class="eq"><span class="body">h²</span></span> 项，误差主项为 <span class="eq"><span class="body">(h/2)f″(x)</span></span>，量级 <span class="eq"><span class="body">O(h)</span></span>。</p>
+
+<p>取 <span class="eq"><span class="body">h = ε = 10<sup>−4</sup></span></span> 时，中心差分的截断误差按 <span class="eq"><span class="body">h²</span></span> 缩小到 <span class="eq"><span class="body">10<sup>−9</sup></span></span> 量级，前向差分仍有 <span class="eq"><span class="body">10<sup>−5</sup></span></span> 量级，两者相差约四个数量级。</p>
+
+<p>但步长并非越小越好。中心差分是「两个相近的数相减」，会遭受灾难性抵消：计算 <span class="eq"><span class="body">f(x±h)</span></span> 时各带有约 <span class="eq"><span class="body">ε|L|</span></span> 的舍入误差（<span class="eq"><span class="body">ε</span></span> 为机器精度），二者相减后除以 <span class="eq"><span class="body">2h</span></span>，舍入误差被放大为</p>
+
+<div class="eq"><span class="body">
+δ<sub>round</sub> <span class="op">≈</span>
+<span class="frac"><span>ε|L|</span><span>2h</span></span>
+</span></div>
+
+<p class="noindent">截断误差随 <span class="eq"><span class="body">h</span></span> 减小而减小，舍入误差却随 <span class="eq"><span class="body">h</span></span> 减小而增大，因此存在一个最优步长。令 <span class="eq"><span class="body">(h²/6)|f‴| = ε|L|/(2h)</span></span> 可得</p>
+
+<div class="eq"><span class="body">
+h<sup>*</sup> <span class="op">≈</span> <span class="up">(</span> <span class="frac"><span>3ε|L|</span><span>|f‴|</span></span> <span class="up">)</span><sup>1/3</sup>
+</span></div>
+
+<div class="note">
+<p><b>为什么必须用 float64。</b>代入 <span class="eq"><span class="body">ε ≈ 2.2×10<sup>−16</sup></span></span>、<span class="eq"><span class="body">|L| ≈ 3.9</span></span>、<span class="eq"><span class="body">|f‴| ~ O(1)</span></span>，最优步长约 <span class="eq"><span class="body">1.4×10<sup>−5</sup></span></span>；此时舍入误差 <span class="eq"><span class="body">ε|L|/(2h) ≈ 4.4×10<sup>−12</sup></span></span>，远小于截断误差，梯度检查才有意义。若改用 float32（<span class="eq"><span class="body">ε ≈ 1.2×10<sup>−7</sup></span></span>），同一 <span class="eq"><span class="body">h = 10<sup>−4</sup></span></span> 下舍入误差升到 <span class="eq"><span class="body">2.3×10<sup>−3</sup></span></span>，已经比 <span class="eq"><span class="body">10<sup>−6</sup></span></span> 的判据本身还高三个数量级，测出的「误差」将完全是浮点噪声，梯度检查完全失去意义。</p>
+</div>
+
+<p>解析梯度与数值梯度的差异用相对误差衡量：</p>
+
+<div class="eq"><span class="body">
+rel <span class="op">=</span>
+<span class="frac"><span>|g<sub>ana</sub> <span class="op">−</span> g<sub>num</sub>|</span><span><span class="up">max</span>(10<sup>−8</sup>, |g<sub>ana</sub>| <span class="op">+</span> |g<sub>num</sub>|)</span></span>
+<span class="eqno">(7)</span>
+</span></div>
+
+<p>分母设置下限 <span class="eq"><span class="body">10<sup>−8</sup></span></span> 是为了避免梯度本身接近 0 时分母趋零、产生虚假的巨大相对误差。判据取 <span class="eq"><span class="body">rel &lt; 10<sup>−6</sup></span></span>。</p>
+
+<h3>3.4 评价指标</h3>
+
+<p><b>混淆矩阵</b>：10×10 矩阵，约定行为真实类别、列为预测类别，<span class="eq"><span class="body">cm[i][j]</span></span> 表示真实为 <span class="eq"><span class="body">i</span></span> 而被预测为 <span class="eq"><span class="body">j</span></span> 的样本数。对角线为分类正确的样本，非对角线元素直接暴露「哪几类之间容易互相混淆」。</p>
+
+<p><b>逐类召回率</b>：衡量某一类的样本被找回的比例，</p>
+
+<div class="eq"><span class="body">
+R<sub>i</sub> <span class="op">=</span>
+<span class="frac"><span>cm[i][i]</span><span><span class="up">Σ</span><sub>j</sub> cm[i][j]</span></span>
+<span class="eqno">(8)</span>
+</span></div>
+
+<p class="noindent">即对角线元素除以该行总和。召回率关注「漏检」，与之相对的精确率则以列总和为分母，关注「误报」。</p>
+
+<!-- ==================================================================== -->
+<h2>四、实验一：反向传播与梯度检查</h2>
+
+<h3>4.1 实验方法</h3>
+
+<p>按式 (4)–(6) 用纯 NumPy 实现单隐藏层 MLP 的前向与反向传播，不使用任何自动求导。梯度检查在一个<b>固定的</b> mini-batch（64 个样本，float64）上进行——固定是必需的，否则两次前向传播的损失不可比。当前参数下该 batch 的交叉熵损失为 <b>3.918401</b>。</p>
+
+<p>受计算量限制无法逐参数检查：MLP 共有 203 530 个参数，每个参数需要 2 次前向传播，总计约 40 万次前向，不具可行性。因此采用<b>分层抽样</b>，对 <span class="eq"><span class="body">W<sub>1</sub>, b<sub>1</sub>, W<sub>2</sub>, b<sub>2</sub></span></span> 各抽 20 个参数，共检查 80 个，保证四组参数都被覆盖。</p>
+
+<h3>4.2 ReLU 拐点的处理</h3>
+
+<p>中心差分要求损失在参数邻域内光滑，而 ReLU 在 <span class="eq"><span class="body">z = 0</span></span> 处不可导。若某隐藏单元的预激活值 <span class="eq"><span class="body">Z<sub>1</sub></span></span> 恰在 0 附近，参数扰动 <span class="eq"><span class="body">ε = 10<sup>−4</sup></span></span> 后该样本的 ReLU 开关会翻转，差商算出的将是跨越折角的平均斜率而非真实梯度，导致虚假的巨大误差。</p>
+
+<p>因此抽样前先计算每个隐藏单元在所有样本上的 <span class="eq"><span class="body">min|Z<sub>1</sub>|</span></span>，只保留大于阈值 <span class="eq"><span class="body">10<sup>−2</sup></span></span> 的「安全单元」。阈值取 <span class="eq"><span class="body">10<sup>−2</sup></span></span> 的依据是：扰动 <span class="eq"><span class="body">ε</span></span> 引起 <span class="eq"><span class="body">Z<sub>1</sub></span></span> 的变化量约为 <span class="eq"><span class="body">ε·|X| ≈ 10<sup>−4</sup></span></span>（输入已归一化，量级为 1），取 <span class="eq"><span class="body">10<sup>−2</sup></span></span> 留出 100 倍余量。</p>
+
+<p>实测在 256 个隐藏单元中有 <b>86 个</b>被排除。该比例合理：初始时 <span class="eq"><span class="body">b<sub>1</sub> = 0</span></span>，<span class="eq"><span class="body">Z<sub>1</sub> = XW<sub>1</sub></span></span> 关于 0 对称分布，必然有相当一部分落在 0 附近。</p>
+
+<h3>4.3 梯度检查结果</h3>
+
+<table class="tight">
+  <caption>表 4　中心差分梯度检查结果</caption>
+  <thead><tr><th>参数</th><th>最大相对误差</th><th>是否通过（&lt; 1e−6）</th></tr></thead>
+  <tbody>
+    <tr><td>W<sub>1</sub></td><td>2.72 × 10<sup>−9</sup></td><td>通过</td></tr>
+    <tr><td>b<sub>1</sub></td><td>4.83 × 10<sup>−9</sup></td><td>通过</td></tr>
+    <tr><td>W<sub>2</sub></td><td>5.92 × 10<sup>−9</sup></td><td>通过</td></tr>
+    <tr><td>b<sub>2</sub></td><td>2.31 × 10<sup>−8</sup></td><td>通过</td></tr>
+    <tr><td class="hi">总体</td><td class="hi">2.31 × 10<sup>−8</sup></td><td class="hi">通过</td></tr>
+  </tbody>
+</table>
+
+<h3>4.4 结果分析</h3>
+
+<p>四组参数的相对误差均在 <span class="eq"><span class="body">10<sup>−8</sup></span></span> 至 <span class="eq"><span class="body">10<sup>−9</sup></span></span> 量级，远低于 <span class="eq"><span class="body">10<sup>−6</sup></span></span> 的判据，说明手写反向传播的解析梯度与数值梯度一致，实现正确。</p>
+
+<p>更值得说明的是<b>误差的量级本身</b>。3.3 节指出，中心差分的误差由截断误差（随 <span class="eq"><span class="body">h</span></span> 减小而减小）与舍入误差（随 <span class="eq"><span class="body">h</span></span> 减小而增大）共同决定，存在最优步长。为验证这一分析，在同一固定 mini-batch、同一批参数、同一批安全隐藏单元上，只把步长 <span class="eq"><span class="body">h</span></span> 从 <span class="eq"><span class="body">10<sup>−3</sup></span></span> 扫到 <span class="eq"><span class="body">10<sup>−8</sup></span></span>，实测结果如下：</p>
+
+<table class="tight">
+  <caption>表 5　数值梯度误差随差分步长 h 的变化（实测）</caption>
+  <thead><tr><th>步长 h</th><th>最大绝对误差</th><th>最大相对误差</th><th>主导因素</th></tr></thead>
+  <tbody>
+    <tr><td>10<sup>−3</sup></td><td>1.18 × 10<sup>−7</sup></td><td>2.44 × 10<sup>−6</sup></td><td>截断误差</td></tr>
+    <tr><td class="hi">10<sup>−4</sup>（本报告采用）</td><td class="hi">1.29 × 10<sup>−9</sup></td><td class="hi">2.31 × 10<sup>−8</sup></td><td>截断误差</td></tr>
+    <tr><td>3 × 10<sup>−5</sup></td><td class="hi">2.27 × 10<sup>−10</sup></td><td class="hi">6.59 × 10<sup>−9</sup></td><td class="hi">两者相当（最优）</td></tr>
+    <tr><td>3 × 10<sup>−6</sup></td><td>2.61 × 10<sup>−10</sup></td><td>9.06 × 10<sup>−8</sup></td><td>舍入误差</td></tr>
+    <tr><td>10<sup>−7</sup></td><td>5.11 × 10<sup>−9</sup></td><td>4.44 × 10<sup>−6</sup></td><td>舍入误差</td></tr>
+    <tr><td>10<sup>−8</sup></td><td>3.38 × 10<sup>−8</sup></td><td>2.27 × 10<sup>−5</sup></td><td>舍入误差</td></tr>
+  </tbody>
+</table>
+
+<p>表中呈现出清晰的 V 形，与 3.3 节的分析逐项吻合：</p>
+
+<ul>
+  <li><b>左侧下降段服从 <span class="eq"><span class="body">O(h²)</span></span>。</b>从 <span class="eq"><span class="body">10<sup>−3</sup></span></span> 到 <span class="eq"><span class="body">10<sup>−4</sup></span></span>，步长缩小 10 倍，误差从 <span class="eq"><span class="body">1.18×10<sup>−7</sup></span></span> 降到 <span class="eq"><span class="body">1.29×10<sup>−9</sup></span></span>，缩小约 <b>92 倍</b>，与 <span class="eq"><span class="body">h²</span></span> 预测的 100 倍基本一致——这一区间由截断误差主导。</li>
+  <li><b>右侧上升段服从 <span class="eq"><span class="body">O(1/h)</span></span>。</b>越过 <span class="eq"><span class="body">3×10<sup>−5</sup></span></span> 后误差转而增大；到 <span class="eq"><span class="body">10<sup>−7</sup></span></span> 时实测 <span class="eq"><span class="body">5.11×10<sup>−9</sup></span></span>，而由 3.3 节的舍入误差公式 <span class="eq"><span class="body">ε|L|/(2h)</span></span> 算得 <span class="eq"><span class="body">4.35×10<sup>−9</sup></span></span>，两者吻合——这一区间由舍入误差主导。</li>
+  <li><b>最优步长与理论预测同量级。</b>实测误差在 <span class="eq"><span class="body">h = 3×10<sup>−5</sup></span></span> 处最小（<span class="eq"><span class="body">2.27×10<sup>−10</sup></span></span>），而 3.3 节由 <span class="eq"><span class="body">h<sup>*</sup> ≈ (3ε|L|/|f‴|)<sup>1/3</sup></span></span> 预测 <span class="eq"><span class="body">1.4×10<sup>−5</sup></span></span>。</li>
+</ul>
+
+<p>本报告采用的 <span class="eq"><span class="body">h = 10<sup>−4</sup></span></span> 位于 V 形左侧的平坦段，绝对误差 <span class="eq"><span class="body">1.29×10<sup>−9</sup></span></span>，仅比最优值高约 6 倍，且远离右侧舍入误差急剧上升的区域，是稳妥的取值。</p>
+
+<div class="note">
+<p><b>结论：</b>实测最大相对误差 <span class="eq"><span class="body">2.31×10<sup>−8</sup></span></span> 与该步长下中心差分的理论精度完全一致，且误差随步长的变化规律（左侧 <span class="eq"><span class="body">h²</span></span>、右侧 <span class="eq"><span class="body">1/h</span></span>）也得到验证。这说明<b>残差来自差分近似本身，而非反向传播的实现错误</b>——这正是梯度检查希望看到的结果。</p>
+</div>
+
+<!-- ==================================================================== -->
+<h2>五、实验二：线性 Softmax 基线</h2>
+
+<h3>5.1 训练过程</h3>
+
+<div class="fig2">
+  <div>
+    <img src="../outputs/figures/linear_curves_loss.png" alt="线性基线损失曲线" style="max-height:68mm">
+  </div>
+</div>
+<div class="figcap">图 1　线性 Softmax 的训练与验证损失曲线</div>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/linear_curves_acc.png" alt="线性基线准确率曲线" style="max-height:68mm"></div>
+</div>
+<div class="figcap">图 2　线性 Softmax 的训练与验证准确率曲线</div>
+
+<p>由图 1、图 2 可见，训练在第 10 轮左右即已收敛：此后训练损失稳定在 0.38 附近不再下降，训练准确率停在 0.866，验证准确率在 0.84 上下小幅波动。末轮训练准确率 0.8655 与验证准确率 0.8422 仅相差约 2.3 个百分点，<b>说明模型处于欠拟合而非过拟合状态</b>——继续训练或增加轮数都不会带来改善，瓶颈在于线性模型的表达能力本身。</p>
+
+<h3>5.2 测试集性能与混淆矩阵</h3>
+
+<p>测试集 10 000 张上的结果为：损失 0.4738，<b>准确率 0.8319</b>，宏平均召回率 0.8319（测试集类别均衡，两者一致）。</p>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/linear_cm.png" alt="线性基线混淆矩阵" style="max-height:66mm"></div>
+  <div><img src="../outputs/figures/linear_cm_norm.png" alt="线性基线行归一化混淆矩阵" style="max-height:66mm"></div>
+</div>
+<div class="figcap">图 3　线性 Softmax 的混淆矩阵（左：样本计数；右：按行归一化）</div>
+
+<p>混淆矩阵显示错误<b>并非均匀分布</b>，而是高度集中在上衣四类之间。最严重的四组混淆为：</p>
+
+<table class="tight">
+  <caption>表 6　线性 Softmax 最严重的混淆组合（测试集）</caption>
+  <thead><tr><th>真实类别</th><th>预测类别</th><th>样本数</th></tr></thead>
+  <tbody>
+    <tr><td>Shirt</td><td>Coat</td><td>196</td></tr>
+    <tr><td>T-shirt/top</td><td>Shirt</td><td>192</td></tr>
+    <tr><td>Pullover</td><td>Coat</td><td>188</td></tr>
+    <tr><td>Shirt</td><td>Pullover</td><td>138</td></tr>
+  </tbody>
+</table>
+
+<p>这四组全部落在 T-shirt/top、Shirt、Pullover、Coat 之间。该现象有明确的物理原因：这四类都是上装，在 28×28 的灰度图中仅有轮廓与纹理的细微差别（领口形状、袖子有无、衣长），而线性模型只能学习「每个像素位置的权重」，无法表达「有袖子」「有领子」这类局部结构特征，因此难以区分。</p>
+
+<h3>5.3 逐类召回率</h3>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/linear_recall.png" alt="线性基线逐类召回率" style="max-height:74mm"></div>
+</div>
+<div class="figcap">图 4　线性 Softmax 的逐类召回率</div>
+
+<table class="tight">
+  <caption>表 7　线性 Softmax 逐类召回率（测试集，按召回率升序）</caption>
+  <thead><tr><th>类别</th><th>召回率</th><th>正确 / 总数</th></tr></thead>
+  <tbody>
+    <tr><td>Shirt</td><td>0.512</td><td>512 / 1000</td></tr>
+    <tr><td>T-shirt/top</td><td>0.705</td><td>705 / 1000</td></tr>
+    <tr><td>Pullover</td><td>0.710</td><td>710 / 1000</td></tr>
+    <tr><td>Coat</td><td>0.847</td><td>847 / 1000</td></tr>
+    <tr><td>Dress</td><td>0.851</td><td>851 / 1000</td></tr>
+    <tr><td>Sandal</td><td>0.916</td><td>916 / 1000</td></tr>
+    <tr><td>Bag</td><td>0.938</td><td>938 / 1000</td></tr>
+    <tr><td>Sneaker</td><td>0.940</td><td>940 / 1000</td></tr>
+    <tr><td>Ankle boot</td><td>0.944</td><td>944 / 1000</td></tr>
+    <tr><td>Trouser</td><td>0.956</td><td>956 / 1000</td></tr>
+  </tbody>
+</table>
+
+<p>召回率呈现明显的两极分化：下半部分的五类（Sandal 至 Trouser）都在 0.92 以上，因为这些类别的轮廓与其余类别差异显著；而上衣四类的召回率均低于 0.86，其中 <b>Shirt 仅 0.512，即近一半的衬衫被误判</b>。总准确率 0.8319 掩盖了这一严重的不均衡，只有逐类指标才能暴露出来。</p>
+
+<h3>5.4 典型错误可视化</h3>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/linear_errors.png" alt="线性基线典型错误样本" style="max-height:104mm"></div>
+</div>
+<div class="figcap">图 5　线性 Softmax 的典型错误样本（T = 真实标签，P = 预测标签，conf = 预测置信度）</div>
+
+<p>图 5 按混淆组合分组展示被误判的测试样本。可以观察到三个现象：</p>
+
+<ul>
+  <li><b>错误样本本身具有歧义性</b>。如第二行第三列的真实标签为 Shirt、被预测为 Pullover 的样本，其轮廓确实介于衬衫与套头衫之间；第四行第一列的真实 Shirt 被预测为 Coat，图像暗且纹理复杂，肉眼也难以确定类别。这类错误反映了数据集本身的标注难度，而非模型的明显缺陷。</li>
+  <li><b>置信度普遍不高</b>。多数错误样本的预测置信度在 0.4–0.6 之间，说明模型对这些样本本身也没有把握，符合「难样本」的预期。</li>
+  <li><b>存在高置信度错误</b>。部分错误样本的置信度达到 0.84–0.87，这类样本才是真正值得警惕的错误——模型「自信地答错」，通常对应训练数据中覆盖不足的形态。</li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2>六、实验三：三模型受控比较</h2>
+
+<h3>6.1 受控条件的设定</h3>
+
+<p>本实验的核心是「受控」：三个模型除网络结构外，其余条件全部相同。具体包括：</p>
+
+<ul>
+  <li><b>同一份数据划分</b>：三者读取同一份落盘的训练/验证索引；</li>
+  <li><b>同一组归一化参数</b>：训练集均值与标准差；</li>
+  <li><b>同一优化器与超参</b>：SGD(momentum = 0.9, lr = 0.01)，批大小 128，训练 30 轮，权重衰减 0；</li>
+  <li><b>同一个随机种子</b>，且建模前重置；</li>
+  <li><b>相同的批次顺序</b>：每个模型开始训练前将 DataLoader 的随机数生成器拨回种子位置。若不重置，模型②看到的批次顺序会接着模型①继续抽取，三者的训练数据顺序就不再一致；</li>
+  <li><b>模型②③的隐藏层宽度相同</b>（256），二者的参数量因此完全相同。</li>
+</ul>
+
+<p>此外，模型②③均不使用 BatchNorm 或 Dropout，避免引入额外变量。</p>
+
+<h3>6.2 三模型性能表</h3>
+
+<table>
+  <caption>表 8　三个模型的性能对比（隐藏层宽度 256，测试集 10 000 张）</caption>
+  <thead>
+    <tr><th>模型</th><th>参数量</th><th>末轮训练损失</th><th>末轮验证损失</th><th>最优验证准确率</th><th>测试损失</th><th>测试准确率</th><th>训练耗时 (s)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="left">① 线性 Softmax</td><td>7 850</td><td>0.3806</td><td>0.4542</td><td>0.8523</td><td>0.4738</td><td>0.8319</td><td>24.8</td></tr>
+    <tr><td class="left">② 双层线性（无激活）</td><td>203 530</td><td>0.3707</td><td>0.4605</td><td>0.8572</td><td>0.4794</td><td>0.8305</td><td>35.9</td></tr>
+    <tr><td class="left">③ 双层线性 + ReLU</td><td>203 530</td><td class="hi">0.1192</td><td class="hi">0.3373</td><td class="hi">0.8965</td><td class="hi">0.3698</td><td class="hi">0.8820</td><td>36.9</td></tr>
+  </tbody>
+</table>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/compare_curves_loss.png" alt="三模型损失曲线" style="max-height:68mm"></div>
+</div>
+<div class="figcap">图 6　三个模型的训练与验证损失曲线</div>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/compare_curves_acc.png" alt="三模型准确率曲线" style="max-height:68mm"></div>
+</div>
+<div class="figcap">图 7　三个模型的训练与验证准确率曲线</div>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/compare_test_acc.png" alt="测试准确率对比" style="max-height:64mm"></div>
+</div>
+<div class="figcap">图 8　三个模型的测试准确率对比</div>
+
+<h3>6.3 模型②与模型①：参数量的无效增长</h3>
+
+<p>模型②的参数量是模型①的 <b>25.9 倍</b>（203 530 对 7 850），而测试准确率反而低 0.14 个百分点（0.8305 对 0.8319）。从图 6、图 7 可以看到，两条曲线几乎完全重合。</p>
+
+<p>这一结果完全符合理论预期。模型②的前向传播为</p>
+
+<div class="eq"><span class="body">
+f(x) = W<sub>2</sub>(W<sub>1</sub>x + b<sub>1</sub>) + b<sub>2</sub> = (W<sub>2</sub>W<sub>1</sub>)x + (W<sub>2</sub>b<sub>1</sub> + b<sub>2</sub>)
+<span class="eqno">(9)</span>
+</span></div>
+
+<p class="noindent">令 <span class="eq"><span class="body">W′ = W<sub>2</sub>W<sub>1</sub></span></span>、<span class="eq"><span class="body">b′ = W<sub>2</sub>b<sub>1</sub> + b<sub>2</sub></span></span>，则模型②在数学上<b>就是一个线性分类器</b>，其假设空间与模型①完全相同。多出的 195 680 个参数只是把同一个线性映射做了冗余参数化，不带来任何表达能力。因此</p>
+
+<div class="note">
+<p><b>结论一：</b>在没有非线性激活的情况下，堆叠线性层不会增加模型容量。「加深网络」的前提是层与层之间存在非线性变换，否则整个网络坍缩为一个线性模型，增加层数只增加参数与计算量，不增加表达能力。</p>
+</div>
+
+<p>模型②的准确率比模型①低 0.14 个百分点，处于随机波动量级，不构成显著差异。其损失曲线略高，可解释为冗余参数化使优化曲面在参数空间中变得更复杂（同样的函数对应无穷多组参数），优化效率略有下降，但这属于次要效应。</p>
+
+<h3>6.4 模型③与模型②：非线性的增益</h3>
+
+<p>模型③与模型②的<b>参数量完全相同</b>（均为 203 530），唯一差别是在两层线性之间插入了 ReLU。测试准确率从 0.8305 提升到 <b>0.8820</b>，提升 <b>5.15 个百分点</b>。</p>
+
+<div class="note">
+<p><b>结论二：</b>在参数量严格不变的条件下，仅引入一个 ReLU 非线性就带来 5.15 个百分点的提升。这组对照把「模型容量的贡献」与「非线性表达的贡献」彻底分离开：提升完全来自非线性变换带来的表达能力，而非参数量的增加。</p>
+</div>
+
+<p>从图 7 还可以观察到模型③出现了明显的<b>过拟合</b>：训练准确率持续攀升至 0.9583，而验证准确率在第 20 轮前后达到峰值 0.8965 后开始回落，末轮降至 0.8888，二者差距约 7 个百分点。对应地，验证损失从第 20 轮的 0.2964 回升至末轮的 0.3373。相比之下，模型①②的训练与验证准确率差距仅约 2.3 个百分点。这说明模型③的容量已经超出该数据规模所需，若要进一步提升泛化性能，可考虑引入权重衰减、Dropout 或早停策略。</p>
+
+<h3>6.5 逐类召回率对比</h3>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/compare_cm_relu.png" alt="模型③混淆矩阵" style="max-height:66mm"></div>
+  <div><img src="../outputs/figures/compare_recall_relu.png" alt="模型③逐类召回率" style="max-height:66mm"></div>
+</div>
+<div class="figcap">图 9　模型③（MLP + ReLU）的混淆矩阵与逐类召回率</div>
+
+<table class="tight">
+  <caption>表 9　模型①与模型③的逐类召回率对比</caption>
+  <thead><tr><th>类别</th><th>① 线性</th><th>③ MLP+ReLU</th><th>变化</th></tr></thead>
+  <tbody>
+    <tr><td>Shirt</td><td>0.512</td><td class="hi">0.719</td><td class="hi">+20.7</td></tr>
+    <tr><td>Pullover</td><td>0.710</td><td class="hi">0.827</td><td class="hi">+11.7</td></tr>
+    <tr><td>Dress</td><td>0.851</td><td>0.909</td><td>+5.8</td></tr>
+    <tr><td>T-shirt/top</td><td>0.705</td><td>0.742</td><td>+3.7</td></tr>
+    <tr><td>Trouser</td><td>0.956</td><td>0.970</td><td>+1.4</td></tr>
+    <tr><td>Sandal</td><td>0.916</td><td>0.942</td><td>+2.6</td></tr>
+    <tr><td>Bag</td><td>0.938</td><td>0.965</td><td>+2.7</td></tr>
+    <tr><td>Sneaker</td><td>0.940</td><td>0.963</td><td>+2.3</td></tr>
+    <tr><td>Ankle boot</td><td>0.944</td><td>0.960</td><td>+1.6</td></tr>
+    <tr><td>Coat</td><td>0.847</td><td>0.823</td><td>−2.4</td></tr>
+  </tbody>
+</table>
+
+<p>（表中变化单位为百分点。）总准确率提升 5.01 个百分点，但这一提升<b>并非均匀分摊</b>：Shirt 一类就贡献了 20.7 个百分点的召回率提升，Pullover 提升 11.7 个百分点，而 Coat 反而下降 2.4 个百分点。这说明 ReLU 带来的增益主要作用于原本最难区分的类别——MLP 能够通过隐藏层学习到「有无袖子」「领口形状」这类局部结构特征，而线性模型只能学习全局的像素权重。</p>
+
+<p>值得注意的是 Coat 的召回率略有下降，且从混淆矩阵可见 Coat 有 83 例被误判为 Pullover。这表明非线性的增益在不同类别间的分配并不均衡，部分形态相近的类别仍存在此消彼长的关系。</p>
+
+<!-- ==================================================================== -->
+<h2>七、实验四：训练诊断——学习率</h2>
+
+<h3>7.1 现象</h3>
+
+<p>在调试 MLP 训练时出现如下现象：当学习率取 1.0 时，训练损失不下降反而剧烈上升，模型在整个训练过程中完全没有学到任何东西，验证准确率始终停留在随机水平（10%）附近。</p>
+
+<h3>7.2 原因判断</h3>
+
+<p>初步判断为<b>步长超过了损失曲面的稳定范围</b>。理由如下：</p>
+
+<p>SGD 的参数更新量为 <span class="eq"><span class="body">Δθ = lr · g</span></span>。当学习率过大时，参数一步就跨过了损失曲面的谷底，导致损失不减反增；损失增大后梯度进一步增大，形成正反馈，损失量级持续攀升直至数值溢出。</p>
+
+<p>动量项会加剧这一过程。带动量的 SGD 在梯度方向稳定时，等效步长约为 <span class="eq"><span class="body">lr / (1 − momentum)</span></span>。本实验取 momentum = 0.9，等效放大倍数约 10 倍，即 <span class="eq"><span class="body">lr = 0.1</span></span> 配 momentum = 0.9 的有效步长已相当于朴素 SGD 的 <span class="eq"><span class="body">lr = 1.0</span></span>。这解释了为何在带动量的设定下，学习率需要取得比通常更小。</p>
+
+<p>需要强调的是，上述判断只是<b>假设</b>。可能导致训练失败的因素还包括初始化不当、数据未归一化、损失函数实现错误等。必须通过控制变量的实验来排除其他可能。</p>
+
+<h3>7.3 验证方法与结果</h3>
+
+<p>验证策略：固定网络结构、数据划分、优化器类型、动量系数、批大小、训练轮数与随机种子<b>全部不变</b>，只改变学习率这一个因素，取 <span class="eq"><span class="body">lr ∈ {0.01, 0.1, 1.0}</span></span>，训练 20 轮。由于其他所有条件都被固定，学习率是唯一的自变量，实验结果可以归因。</p>
+
+<table class="tight">
+  <caption>表 10　不同学习率下的训练结果（其余条件完全一致）</caption>
+  <thead><tr><th>学习率</th><th>首个 epoch 损失</th><th>末轮训练损失</th><th>最优验证准确率</th><th>结论</th></tr></thead>
+  <tbody>
+    <tr><td>0.01</td><td>0.5616</td><td class="hi">0.1677</td><td class="hi">0.8965</td><td>正常收敛</td></tr>
+    <tr><td>0.1</td><td>0.5556</td><td>0.2346</td><td>0.8753</td><td>收敛但明显更差</td></tr>
+    <tr><td>1.0</td><td class="hi">69.9874</td><td class="hi">2.3081</td><td class="hi">0.1374</td><td class="hi">未收敛 / 震荡</td></tr>
+  </tbody>
+</table>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/diag_step_loss.png" alt="首个 epoch 内逐 step 损失" style="max-height:82mm"></div>
+</div>
+<div class="figcap">图 10　第一个 epoch 内逐 step 的训练损失（横轴为迭代步数，纵轴取对数刻度）</div>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/diag_train_loss.png" alt="逐 epoch 训练损失" style="max-height:82mm"></div>
+</div>
+<div class="figcap">图 11　不同学习率下逐 epoch 的训练损失（纵轴取对数刻度）</div>
+
+<div class="fig2">
+  <div><img src="../outputs/figures/diag_val_acc.png" alt="逐 epoch 验证准确率" style="max-height:82mm"></div>
+</div>
+<div class="figcap">图 12　不同学习率下的验证准确率</div>
+
+<h3>7.4 结果分析</h3>
+
+<p><b>学习率 0.01</b>：损失平稳单调下降，末轮训练损失 0.1677，验证准确率 0.8965，训练正常。</p>
+
+<p><b>学习率 0.1</b>：仍能收敛，但末轮训练损失 0.2346（比 0.01 高 40%），验证准确率 0.8753，低 2.1 个百分点。说明学习率偏大时的退化是<b>渐进的</b>，而非突变的——在发散之前，性能就已经在悄悄损失。</p>
+
+<p><b>学习率 1.0</b>：训练完全失败。图 10 显示第一个 epoch 内损失就在 <b>0.5 至 1800</b> 之间反复震荡，毫无下降趋势；首个 epoch 的平均损失高达 69.99。图 11 显示，从第 7 个 epoch 起损失稳定停在 <b>2.303</b>。</p>
+
+<p>这个数值极具说明性：<span class="eq"><span class="body">2.303 = ln 10</span></span>，正是 10 类等概率分布下的交叉熵（<span class="eq"><span class="body">−ln(1/10)</span></span>）。它意味着模型输出的 logits 已经趋同，Softmax 退化为均匀分布，即模型<b>对任何输入都给出完全相同的预测</b>。图 12 中该曲线的验证准确率恰为 10%，与此完全吻合——模型已经彻底失去判别能力。</p>
+
+<h3>7.5 诊断结论</h3>
+
+<div class="note">
+<p><b>结论三：</b>在其余条件全部固定的情况下，仅改变学习率就使同一个模型从正常收敛（0.8965）变为完全失败（0.1374）。这排除了网络结构、数据划分、初始化方式等其他解释，证实训练失败的原因是步长过大。<br>
+<b>定量地看，</b>该配置下的安全学习率在 0.01 附近；0.1 已出现可测量的退化；1.0 完全失效。</p>
+</div>
+
+<p>作为该结论的进一步佐证，将学习率继续加大到 2.0 时，损失会直接溢出到 <span class="eq"><span class="body">10<sup>26</sup></span></span> 量级，与「步长越大发散越快」的机理一致。</p>
+
+<!-- ==================================================================== -->
+<h2>八、讨论</h2>
+
+<h3>8.1 实验的可复现性</h3>
+
+<p>为保证结果可复现，实现中处理了三个容易被忽略的问题：</p>
+
+<ol>
+  <li><b>数据划分落盘。</b>训练/验证索引保存为文件，四个实验共用。若每次运行重新随机划分，三个模型的训练集与验证集将互不相同，性能差异无法归因。</li>
+  <li><b>建模前重置随机种子。</b>实验中发现：加载数据时遍历 DataLoader 会消耗全局的 PyTorch 随机源，导致「脚本开头设一次种子」的写法在不同脚本中产生不同的模型初始化。同一个线性模型在独立运行时得到 0.8329，而在比较脚本中得到 0.8319。统一为「每个模型构建前重置种子」后，两处结果一致。<b>这个问题直接影响「比较是否受控」，是本次实验中最值得记录的教训。</b></li>
+  <li><b>重置 DataLoader 的打乱顺序。</b>打乱顺序由 DataLoader 内部的随机数生成器决定，其状态会在多个模型间连续累积，必须显式重置。</li>
+</ol>
+
+<h3>8.2 实验的局限</h3>
+
+<ul>
+  <li><b>单次运行，未做多次重复。</b>表 8 中模型②与① 0.14 个百分点的差异、表 9 中 Coat 类 2.4 个百分点的下降，均未经过多次重复实验验证，可能处于随机波动范围内。严格结论需要多组种子下的均值与标准差。</li>
+  <li><b>未调优即比较。</b>为保证受控，三个模型共用同一套超参数，未针对各自做学习率调优。这是「受控」与「最优」之间的取舍：本实验选择受控优先，因此三个模型的绝对性能都未达到各自的最优水平。</li>
+  <li><b>模型③已出现过拟合</b>（训练与验证准确率相差约 7 个百分点），而实验未引入正则化或早停。这为后续改进留下了空间，但不影响本次受控比较的结论。</li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2>九、结论</h2>
+
+<ol>
+  <li><b>反向传播实现正确。</b>纯 NumPy 实现的单隐藏层 MLP 前向与反向传播，经中心差分梯度检查验证，四组参数的最大相对误差为 2.31 × 10<sup>−8</sup>，远低于 10<sup>−6</sup> 的判据，且该量级与 float64 下中心差分的理论精度极限一致。</li>
+  <li><b>堆叠线性层不增加表达能力。</b>双层无激活模型的参数量是线性模型的 25.9 倍，测试准确率却低 0.14 个百分点。数学上 <span class="eq"><span class="body">W<sub>2</sub>W<sub>1</sub></span></span> 仍是单个线性映射，二者假设空间完全相同——「加深」必须以非线性为前提。</li>
+  <li><b>非线性的增益是显著的且可分离的。</b>在参数量完全相同的条件下，仅加入一个 ReLU 就使测试准确率提升 5.15 个百分点（0.8305 → 0.8820）。该提升集中在原本最难的上衣类：Shirt 的召回率从 0.512 提升到 0.719。</li>
+  <li><b>学习率过大是训练失败的直接原因。</b>在其余条件全部固定的前提下，学习率从 0.01 增至 1.0 使验证准确率从 0.8965 崩溃至 0.1374，损失稳定在 <span class="eq"><span class="body">ln 10</span></span>（即均匀随机猜测）。实验同时表明，带动量 SGD 的等效步长约为 <span class="eq"><span class="body">lr/(1−momentum)</span></span>，因此需要更小的学习率。</li>
+  <li><b>总准确率会掩盖类别间的不均衡。</b>线性基线的总准确率 0.8319 看似尚可，但 Shirt 类的召回率仅 0.512。只有结合混淆矩阵与逐类召回率，才能发现错误高度集中在上衣四类之间这一关键事实。</li>
+</ol>
+
+<!-- ==================================================================== -->
+<h2>附录 A　代码与复现说明</h2>
+
+<h3>A.1 目录结构</h3>
+
+<pre>fashion-mnist-lab/
+├── config.py          全局配置：随机种子、划分比例、超参数、路径
+├── data_utils.py      数据加载、固定划分、DataLoader 构建
+├── models.py          三个 PyTorch 模型
+├── numpy_mlp.py       纯 NumPy 的 forward 与 backward
+├── grad_check.py      中心差分梯度检查
+├── trainer.py         三模型共用的训练与评估循环
+├── evaluate.py        混淆矩阵、逐类召回率、曲线、典型错误可视化
+├── train_linear.py    实验二：线性 Softmax 基线
+├── train_compare.py   实验三：三模型受控比较
+├── diagnose.py        实验四：学习率诊断
+├── run_all.py         一键跑通全部实验
+└── outputs/           所有结果：图片、CSV、JSON</pre>
+
+<h3>A.2 运行方式</h3>
+
+<p>环境依赖：Python 3.13、NumPy、PyTorch(cpu)、torchvision、Matplotlib。全部实验在 CPU 上完成。</p>
+
+<pre># 一键运行全部实验（约 4 分钟）
+python run_all.py
+
+# 也可单独运行各部分
+python grad_check.py      # 梯度检查，约 5 秒
+python train_linear.py    # 线性基线，约 30 秒
+python train_compare.py   # 三模型比较，约 1.7 分钟
+python diagnose.py        # 学习率诊断，约 1.8 分钟</pre>
+
+<p>数据集首次运行时自动下载（约 30 MB）。所有超参数集中在 <code>config.py</code> 中，修改一处即可全局生效。</p>
+
+<h3>A.3 随机种子说明</h3>
+
+<p>全局种子 <code>SEED = 42</code>，控制数据划分、参数初始化与 DataLoader 的打乱顺序。由于数据划分索引已落盘（<code>outputs/split_indices.npz</code>），删除该文件将重新划分数据集，数值结果随之改变，但三个模型仍共用同一份划分，比较依然受控。在相同环境下重复运行，结果完全一致。</p>
+
+<h3>A.4 提交物清单</h3>
+
+<table class="tight">
+  <caption>表 11　提交物与作业要求的对应关系</caption>
+  <thead><tr><th>作业要求</th><th>对应文件</th></tr></thead>
+  <tbody>
+    <tr><td class="left">梯度检查结果</td><td class="left">表 4、5；<code>outputs/grad_check.csv</code></td></tr>
+    <tr><td class="left">三模型性能表</td><td class="left">表 8；<code>outputs/compare_table.csv</code></td></tr>
+    <tr><td class="left">训练与验证曲线</td><td class="left">图 1、2、6、7、11、12</td></tr>
+    <tr><td class="left">混淆矩阵</td><td class="left">图 3、9</td></tr>
+    <tr><td class="left">逐类召回率</td><td class="left">表 7、9；图 4</td></tr>
+    <tr><td class="left">典型错误</td><td class="left">图 5</td></tr>
+    <tr><td class="left">可运行源代码</td><td class="left"><code>fashion-mnist-lab/</code> 全部代码</td></tr>
+    <tr><td class="left">README 说明文件</td><td class="left"><code>fashion-mnist-lab/README.md</code></td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>

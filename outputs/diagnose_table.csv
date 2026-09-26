@@ -1,0 +1,4 @@
+﻿lr,first_epoch_loss,final_train_loss,best_val_acc,epochs_run,conclusion,time_sec
+0.01,0.5616,0.1677,0.8965,20,正常收敛,21.0
+0.1,0.5556,0.2346,0.8753,20,正常收敛,25.9
+1.0,69.9874,2.3081,0.1374,20,未收敛/震荡,48.7

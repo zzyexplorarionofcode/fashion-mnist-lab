@@ -1,0 +1,46 @@
+{
+  "model": "LinearSoftmax",
+  "config": "seed=42, batch_size=128, epochs=30, optimizer=SGD(lr=0.01, momentum=0.9, weight_decay=0.0), hidden_dim=256, split=50000/10000",
+  "num_params": 7850,
+  "test_loss": 0.4737735936164856,
+  "test_acc": 0.8319,
+  "macro_recall": 0.8318999999999999,
+  "per_class_recall": {
+    "T-shirt/top": 0.705,
+    "Trouser": 0.956,
+    "Pullover": 0.71,
+    "Dress": 0.851,
+    "Coat": 0.847,
+    "Sandal": 0.916,
+    "Shirt": 0.512,
+    "Sneaker": 0.94,
+    "Bag": 0.938,
+    "Ankle boot": 0.944
+  },
+  "top_confusions": [
+    {
+      "true": "Shirt",
+      "pred": "Coat",
+      "count": 196
+    },
+    {
+      "true": "T-shirt/top",
+      "pred": "Shirt",
+      "count": 192
+    },
+    {
+      "true": "Pullover",
+      "pred": "Coat",
+      "count": 188
+    },
+    {
+      "true": "Shirt",
+      "pred": "Pullover",
+      "count": 138
+    }
+  ],
+  "final_train_loss": 0.3806315441608429,
+  "final_val_loss": 0.4541868422985077,
+  "best_val_acc": 0.8523,
+  "total_train_time_sec": 24.483144998550415
+}

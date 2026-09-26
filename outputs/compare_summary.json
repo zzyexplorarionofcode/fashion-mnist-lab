@@ -1,0 +1,38 @@
+{
+  "config": "seed=42, batch_size=128, epochs=30, optimizer=SGD(lr=0.01, momentum=0.9, weight_decay=0.0), hidden_dim=256, split=50000/10000",
+  "table": [
+    {
+      "model": "1-Linear",
+      "num_params": 7850,
+      "final_train_loss": "0.3806",
+      "final_val_loss": "0.4542",
+      "best_val_acc": "0.8523",
+      "test_loss": "0.4738",
+      "test_acc": "0.8319",
+      "train_time_sec": "19.7",
+      "diverged": "否"
+    },
+    {
+      "model": "2-TwoLinear-NoAct",
+      "num_params": 203530,
+      "final_train_loss": "0.3707",
+      "final_val_loss": "0.4605",
+      "best_val_acc": "0.8572",
+      "test_loss": "0.4794",
+      "test_acc": "0.8305",
+      "train_time_sec": "31.9",
+      "diverged": "否"
+    },
+    {
+      "model": "3-MLP-ReLU",
+      "num_params": 203530,
+      "final_train_loss": "0.1192",
+      "final_val_loss": "0.3373",
+      "best_val_acc": "0.8965",
+      "test_loss": "0.3698",
+      "test_acc": "0.8820",
+      "train_time_sec": "34.8",
+      "diverged": "否"
+    }
+  ]
+}

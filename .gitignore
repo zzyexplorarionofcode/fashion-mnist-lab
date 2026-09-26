@@ -1,0 +1,12 @@
+# Fashion-MNIST 数据集（约 82MB，首次运行由 torchvision 自动下载，不必入库）
+data/
+
+# Python 字节码缓存
+__pycache__/
+*.py[cod]
+
+# 编辑器 / 系统临时文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
